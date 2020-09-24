@@ -1,2 +1,2 @@
 # BrickBreakerGame
-BRick Breacker Game
+Brick Breacker Game using Javascript and canvas element

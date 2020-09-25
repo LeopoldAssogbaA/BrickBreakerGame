@@ -15,6 +15,9 @@ let paddleWidth = 57;
 let paddleX = (canvas.width - paddleWidth) / 2;
 let rightPressed = false;
 let leftPressed = false;
+//score
+let score = 0;
+
 // bricks
 let brickRowCount = 3;
 let brickColumnCount = 5;
@@ -31,6 +34,10 @@ for (let c = 0; c < brickColumnCount; c++) {
     bricks[c][r] = { x: 0, y: 0, status: 1 };
   }
 }
+// sounds
+let impact= new Audio('./assets/impact.mp3');
+let bounce = new Audio('./assets/bounce.mp3');
+let bounce2 = new Audio('./assets/bounce2.mp3');
 
 // keys eventListners 
 document.addEventListener("keydown", keyDownHandler, false);
@@ -79,6 +86,12 @@ function drawBricks() {
   }
 }
 
+function drawScore() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Score: "+score, 8, 20);
+}
+
 // get the keys on keydown 
 function keyDownHandler(e) {
   if (e.key == "Right" || e.key == "ArrowRight") {
@@ -107,6 +120,16 @@ function collisionDetection() {
         if (x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight) {
           dy = -dy;
           b.status = 0;
+          score++;
+          impact.play();
+          randomColor = getHexDecRandomColor();
+          if(score == brickRowCount*brickColumnCount) {
+            setTimeout(() => {
+              alert("C'est gagné, Bravo!"); 
+            document.location.reload();
+            clearInterval(interval);
+            }, 1000);
+          }
         }
       }
     }
@@ -119,26 +142,32 @@ function draw() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawPaddle();
-  collisionDetection();
   drawBall();
   drawBricks();
+  collisionDetection();
+  drawScore();
+
 
   // change directon on right/left collision event and change the ball's color
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
     randomColor = getHexDecRandomColor();
+    bounce2.play();
   }
 
   // change direction on top/paddle collision and stop if loose
   if (y + dy < ballRadius) {
     dy = -dy;
+    bounce2.play();
     randomColor = getHexDecRandomColor();
+    // bounce.play();
   } else if (y + dy > canvas.height - ballRadius - paddleHeight) {
     if (x > paddleX && x < paddleX + paddleWidth) {
       dy = -dy;
+      bounce.play();
     }
     else {
-      // alert("GAME OVER");
+      alert("GAME OVER");
       document.location.reload();
       clearInterval(interval);
     }
@@ -155,7 +184,7 @@ function draw() {
 }
 
 
-let interval = setInterval(draw, 10);
+let interval = setInterval(draw, 17);
 
 
 

@@ -17,7 +17,7 @@ let rightPressed = false;
 let leftPressed = false;
 //score
 let score = 0;
-
+let lives = 3;
 // bricks
 let brickRowCount = 3;
 let brickColumnCount = 5;
@@ -35,13 +35,23 @@ for (let c = 0; c < brickColumnCount; c++) {
   }
 }
 // sounds
-let impact= new Audio('./assets/impact.mp3');
+let impact = new Audio('./assets/impact.mp3');
 let bounce = new Audio('./assets/bounce.mp3');
 let bounce2 = new Audio('./assets/bounce2.mp3');
 
-// keys eventListners 
+// keys & mouse eventListners 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("mousemove", mouseMoveHandler, false);
+
+
+// mouse control
+function mouseMoveHandler(e) {
+  let relativeX = e.clientX - canvas.offsetLeft;
+  if (relativeX > 0 && relativeX < canvas.width) {
+    paddleX = relativeX - paddleWidth / 2;
+  }
+}
 
 function getHexDecRandomColor() {
   let letters = '0123456789ABCDEF';
@@ -78,7 +88,7 @@ function drawBricks() {
         bricks[c][r].y = brickY;
         ctx.beginPath();
         ctx.rect(brickX, brickY, brickWidth, brickHeight);
-        ctx.fillStyle = "#0095DD";
+        ctx.fillStyle = randomColor;
         ctx.fill();
         ctx.closePath();
       }
@@ -89,7 +99,13 @@ function drawBricks() {
 function drawScore() {
   ctx.font = "16px Arial";
   ctx.fillStyle = "#0095DD";
-  ctx.fillText("Score: "+score, 8, 20);
+  ctx.fillText("Score: " + score, 8, 20);
+}
+
+function drawLives() {
+  ctx.font = "16px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText("Lives: " + lives, canvas.width - 65, 20);
 }
 
 // get the keys on keydown 
@@ -123,11 +139,10 @@ function collisionDetection() {
           score++;
           impact.play();
           randomColor = getHexDecRandomColor();
-          if(score == brickRowCount*brickColumnCount) {
+          if (score == brickRowCount * brickColumnCount) {
             setTimeout(() => {
-              alert("C'est gagné, Bravo!"); 
-            document.location.reload();
-            clearInterval(interval);
+              alert("C'est gagné, Bravo!");
+              document.location.reload();
             }, 1000);
           }
         }
@@ -146,12 +161,12 @@ function draw() {
   drawBricks();
   collisionDetection();
   drawScore();
+  drawLives();
 
 
   // change directon on right/left collision event and change the ball's color
   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
     dx = -dx;
-    randomColor = getHexDecRandomColor();
     bounce2.play();
   }
 
@@ -159,7 +174,6 @@ function draw() {
   if (y + dy < ballRadius) {
     dy = -dy;
     bounce2.play();
-    randomColor = getHexDecRandomColor();
     // bounce.play();
   } else if (y + dy > canvas.height - ballRadius - paddleHeight) {
     if (x > paddleX && x < paddleX + paddleWidth) {
@@ -167,9 +181,18 @@ function draw() {
       bounce.play();
     }
     else {
-      alert("GAME OVER");
-      document.location.reload();
-      clearInterval(interval);
+      lives--;
+      if (!lives) {
+        alert("GAME OVER");
+        document.location.reload();
+      }
+      else {
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        dx = 2;
+        dy = -2;
+        paddleX = (canvas.width - paddleWidth) / 2;
+      }
     }
   }
   // move paddle if key is pressed and block at the end of canvas
@@ -181,10 +204,11 @@ function draw() {
 
   x += dx;
   y += dy;
+  requestAnimationFrame(draw);
+
 }
 
-
-let interval = setInterval(draw, 17);
+draw();
 
 
 
